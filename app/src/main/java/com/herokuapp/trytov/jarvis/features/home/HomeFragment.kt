@@ -2,23 +2,30 @@ package com.herokuapp.trytov.jarvis.features.home
 
 import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.RecognizerIntent
+import android.support.annotation.RequiresApi
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.TextView
+import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
 import com.herokuapp.trytov.jarvis.R
 import com.herokuapp.trytov.jarvis.data.model.PackageResponse
+import com.herokuapp.trytov.jarvis.extensions.setHideKeyBoardListener
 import com.herokuapp.trytov.jarvis.util.TextReader
 import kotlinx.android.synthetic.main.fragment_home.*
 import java.util.*
+
 
 class HomeFragment : Fragment(), HomeContract.View {
     override lateinit var presenter: HomeContract.Presenter
@@ -29,7 +36,21 @@ class HomeFragment : Fragment(), HomeContract.View {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initTextInputAction()
         btn_speak.setOnClickListener { promptSpeechInput() }
+        layout_backgroud.setHideKeyBoardListener()
+    }
+
+    private fun initTextInputAction() {
+        tv_text_input.setOnEditorActionListener(object : OnEditorActionListener {
+            override fun onEditorAction(v: TextView, actionId: Int, event: KeyEvent?): Boolean {
+                if (event?.keyCode === KeyEvent.KEYCODE_ENTER || actionId == EditorInfo.IME_ACTION_DONE) {
+                    presenter.sendResultAfterResolveVoice(tv_text_input.text.toString())
+                }
+                return false
+            }
+        })
+        tv_text_input.setOnClickListener{detachChange = true}
     }
 
     private fun dialogWarningDeviceNotSupport(){
@@ -38,27 +59,34 @@ class HomeFragment : Fragment(), HomeContract.View {
         builder.setIcon(android.R.drawable.stat_sys_warning)
         builder.setCancelable(false)
         builder.setMessage(R.string.dialog_message_device_not_support_speed_to_text)
-                .setPositiveButton(R.string.ok, DialogInterface.OnClickListener { dialog, id ->
+                .setPositiveButton(R.string.ok, { _, _ ->
                     presenter.directToGooglePlayDownloadAppSupport()
                 })
-                .setNegativeButton(R.string.cancel, DialogInterface.OnClickListener { dialog, id ->
+                .setNegativeButton(R.string.cancel, { _, _ ->
                     activity!!.finish()
                 })
         builder.create().show()
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun gotoSetting(){
-        startActivityForResult(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), 0);
+        startActivityForResult(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), 0)
     }
 
     override fun setTextInput(textInput: String) {
-        tv_text_input.text = textInput
+        tv_text_input.setText(textInput, TextView.BufferType.EDITABLE)
+        tv_text_input.post({
+            if(!detachChange){
+                presenter.sendResultAfterResolveVoice(textInput)
+            }
+        })
     }
 
     /**
      * Showing google speech input dialog
      */
     private fun promptSpeechInput() {
+        detachChange = false
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
@@ -109,5 +137,6 @@ class HomeFragment : Fragment(), HomeContract.View {
 
     companion object {
         fun newInstance() = HomeFragment()
+        private var detachChange: Boolean = false
     }
 }

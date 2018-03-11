@@ -5,5 +5,7 @@ import android.content.Context
 interface BaseException {
     var error: Throwable
     var message: String?
-    fun onError(context: Context)
+    fun onError(baseCallBack: BaseCallBack)
 }
+
+interface BaseCallBack{}

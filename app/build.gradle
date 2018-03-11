@@ -20,6 +20,12 @@ android {
         debug {
             buildConfigField "String", 'BASE_URL', '"https://enigmatic-bastion-95444.herokuapp.com"'
         }
+
+        debugWithLocal {
+            initWith debug
+            buildConfigField "String", 'BASE_URL', '"http://192.168.1.6:3000/"'
+        }
+
         release {
             buildConfigField "String", 'BASE_URL', '"https://enigmatic-bastion-95444.herokuapp.com"'
             minifyEnabled false
@@ -31,6 +37,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    //noinspection GradleCompatible,GradleCompatible
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.android.support:support-v4:26.1.0'

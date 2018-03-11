@@ -11,6 +11,6 @@ interface PackageRequestService {
     @GET("/")
     fun startServer(): Observable<String>
 
-    @POST("/controlVoice")
+    @POST("api/controlVoice")
     fun getResultAfterResolve(@Body()request : PackageRequest) : Observable<PackageResponse>
 }

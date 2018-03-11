@@ -23,5 +23,6 @@ interface HomeContract {
         fun resolveTextInput(requestCode: Int, resultCode: Int, data: Intent?)
         fun deviceNotsupport()
         fun directToGooglePlayDownloadAppSupport()
+        fun sendResultAfterResolveVoice(text: String)
     }
 }

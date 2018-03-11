@@ -2,19 +2,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:id="@+id/layout_backgroud"
     android:background="@drawable/bg_gradient">
 
 
-    <TextView
+    <EditText
         android:id="@+id/tv_text_input"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="100dp"
+        android:background="@android:color/transparent"
+        android:imeOptions="actionSend"
+        android:singleLine="true"
         android:textColor="@color/white"
-        android:textSize="26dp"
-        android:textStyle="normal" />
+        android:textSize="26sp"
+        android:textStyle="normal"
+        android:inputType="text" />
 
     <TextView
         android:id="@+id/tv_text_output"
@@ -24,9 +29,9 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="150dp"
         android:textColor="@color/white"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:textStyle="normal"
-        android:gravity="left"/>
+        android:gravity="start"/>
 
 
     <LinearLayout
@@ -43,7 +48,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@null"
-            android:src="@mipmap/ico_mic" />
+            android:src="@mipmap/ico_mic"
+            android:contentDescription="@string/btn_record_description" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -51,7 +57,7 @@
             android:layout_marginTop="10dp"
             android:text="@string/tap_on_mic"
             android:textColor="@color/white"
-            android:textSize="15dp"
+            android:textSize="15sp"
             android:textStyle="normal" />
     </LinearLayout>
 

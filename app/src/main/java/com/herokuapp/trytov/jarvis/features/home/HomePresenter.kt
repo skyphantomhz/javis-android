@@ -9,9 +9,10 @@ import com.herokuapp.trytov.jarvis.SimpleSubscriber
 import com.herokuapp.trytov.jarvis.data.Injection
 import com.herokuapp.trytov.jarvis.data.model.PackageRequest
 import com.herokuapp.trytov.jarvis.data.model.PackageResponse
+import com.herokuapp.trytov.jarvis.data.repository.PreferenceRepository
 import com.herokuapp.trytov.jarvis.exception.RestApiException
 
-class HomePresenter(val view: HomeContract.View, val listener: HomeCallBack) : HomeContract.Presenter {
+class HomePresenter(val sharePreferenceRepository: PreferenceRepository, val view: HomeContract.View, val listener: HomeCallBack) : HomeContract.Presenter {
     init {
         view.presenter = this
     }
@@ -35,9 +36,10 @@ class HomePresenter(val view: HomeContract.View, val listener: HomeCallBack) : H
         }
     }
 
-    private fun getTextInput(data: String){
+    private fun getTextInput(data: String) {
         view.setTextInput(data)
-        getResultAfterResolve(data)
+//        Thread.sleep(2000)
+//        getResultAfterResolve(data)
     }
 
     override fun deviceNotsupport() {
@@ -53,7 +55,7 @@ class HomePresenter(val view: HomeContract.View, val listener: HomeCallBack) : H
         }
     }
 
-    private fun getResultAfterResolve(text: String) {
+    override fun sendResultAfterResolveVoice(text: String) {
         val observer = object : SimpleSubscriber<PackageResponse>() {
             override fun onCompleted(success: Boolean, value: PackageResponse?, error: BaseException?) {
                 super.onCompleted(success, value, error)
@@ -63,31 +65,34 @@ class HomePresenter(val view: HomeContract.View, val listener: HomeCallBack) : H
                 }
             }
         }
-        Injection.providePackageRequestRepository().getResultAfterResolve(PackageRequest(text)).subscribe(observer)
+        val token = sharePreferenceRepository.getToken()
+        Injection.providePackageRequestRepository().getResultAfterResolve(PackageRequest(token, text)).subscribe(observer)
     }
 
     private fun handleExceptionOnRestApi(error: RestApiException) {
-        error.callBack = object : RestApiException.CallBackError {
+
+        error.onError(object : RestApiException.CallBackException {
+            override fun unAuthorized() {
+                listener.unAuthorized()
+            }
+
             override fun connectException() {
                 listener.detectInternetState()
             }
+        })
+        when {
+            !error.message.isNullOrEmpty() -> view.showErrorByToast(error.message!!)
+            else -> false
         }
-        view.getContextSource()?.let {
-            error.onError(it)
-            when {
-                !error.message.isNullOrEmpty() -> view.showErrorByToast(error.message!!)
-                else -> false
-            }
-        } ?: run{
-            view.showErrorByToast("ko co context")
-        }
+
     }
 
     private fun getDataSuccess(data: PackageResponse) {
         view.outputText(data)
     }
 
-    interface HomeCallBack{
+    interface HomeCallBack {
         fun detectInternetState()
+        fun unAuthorized()
     }
 }

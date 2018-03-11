@@ -1,41 +1,50 @@
 package com.herokuapp.trytov.jarvis.exception
 
 import android.content.Context
+import com.herokuapp.trytov.jarvis.BaseCallBack
 import com.herokuapp.trytov.jarvis.BaseException
 import com.herokuapp.trytov.jarvis.R
+import com.herokuapp.trytov.jarvis.getStringResource
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException
 import java.net.ConnectException
 import java.net.HttpURLConnection
+import java.net.SocketTimeoutException
 
 class RestApiException(override var error: Throwable) : BaseException {
     override var message: String? = null
-    lateinit var callBack: CallBackError
-    override fun onError(context: Context) {
+    override fun onError(baseCallBack: BaseCallBack) {
+        val callBack = baseCallBack as CallBackException
         error.let {
             when (it) {
-                is HttpException -> resolveErrorHandledOnRestApi(it, context)
+                is HttpException -> resolveErrorHandledOnRestApi(it, callBack)
                 is ConnectException -> callBack.connectException()
-                else -> message = context.resources.getString(R.string.string_exception_not_handle)
+                is SocketTimeoutException ->  message = getStringResource(R.string.string_request_time_out)
+                else -> message = getStringResource(R.string.string_exception_not_handle)
             }
         }
     }
 
-    private fun resolveErrorHandledOnRestApi(error: HttpException, context: Context) {
+    private fun resolveErrorHandledOnRestApi(error: HttpException, callBack: CallBackException) {
         message =when (error.code()) {
+            HttpURLConnection.HTTP_UNAUTHORIZED -> {
+                callBack.unAuthorized()
+                getStringResource(R.string.string_unauthorized)
+            }
             HttpURLConnection.HTTP_FORBIDDEN -> {
-                context.resources.getString(R.string.string_forbidden)
+                getStringResource(R.string.string_forbidden)
             }
             HttpURLConnection.HTTP_NOT_FOUND -> {
-                context.resources.getString(R.string.string_not_found)
+                getStringResource(R.string.string_not_found)
             }
             HttpURLConnection.HTTP_INTERNAL_ERROR -> {
-                context.resources.getString(R.string.string_internal_server_error)
+                getStringResource(R.string.string_internal_server_error)
             }
-            else -> context.resources.getString(R.string.string_http_exception)
+            else -> getStringResource(R.string.string_http_exception)
         }
     }
 
-    interface CallBackError {
+    interface CallBackException: BaseCallBack {
         fun connectException()
+        fun unAuthorized()
     }
 }

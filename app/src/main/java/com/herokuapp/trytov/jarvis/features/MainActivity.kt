@@ -10,7 +10,9 @@ import com.herokuapp.trytov.jarvis.BaseException
 import com.herokuapp.trytov.jarvis.R
 import com.herokuapp.trytov.jarvis.SimpleSubscriber
 import com.herokuapp.trytov.jarvis.data.Injection
+import com.herokuapp.trytov.jarvis.data.model.AuthenticateResponse
 import com.herokuapp.trytov.jarvis.data.model.Profile
+import com.herokuapp.trytov.jarvis.data.repository.AuthenticateRepository
 import com.herokuapp.trytov.jarvis.exception.RestApiException
 import com.herokuapp.trytov.jarvis.extensions.isInternetAvailable
 import com.herokuapp.trytov.jarvis.extensions.showDialogOnlyAccept
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity(), HomePresenter.HomeCallBack, LoginPrese
     }
 
     fun initView(){
-        if(Injection.providePreferenceRepository(applicationContext).getProfile().id.isNotEmpty()){
+        if(!Injection.providePreferenceRepository(applicationContext).tokenIsEmpty()){
             directToHomePage()
         }else{
             directToLoginPage()
@@ -46,7 +48,24 @@ class MainActivity : AppCompatActivity(), HomePresenter.HomeCallBack, LoginPrese
     }
 
     override fun loginSuccess(profile: Profile) {
-        Injection.providePreferenceRepository(applicationContext).setProfile(profile)
+        getToken(profile)
+    }
+
+    private fun getToken(profile: Profile){
+        val observer = object : SimpleSubscriber<AuthenticateResponse>() {
+            override fun onCompleted(success: Boolean, value: AuthenticateResponse?, error: BaseException?) {
+                super.onCompleted(success, value, error)
+                when {
+                    success && value != null -> saveToken(value)
+                    else -> handleExceptionOnRestApi(error!! as RestApiException)
+                }
+            }
+        }
+        Injection.provideAuthenticaRepository().getToken(profile).subscribe(observer)
+    }
+
+    private fun saveToken(res: AuthenticateResponse){
+        Injection.providePreferenceRepository(applicationContext).setToken(res.token)
         directToHomePage()
     }
 
@@ -59,7 +78,8 @@ class MainActivity : AppCompatActivity(), HomePresenter.HomeCallBack, LoginPrese
     private fun directToHomePage() {
         HomeFragment.newInstance().let {
             replaceFragmentInActivity(it, R.id.frame_layout_context)
-            homePresenter = HomePresenter(it, this@MainActivity)
+            homePresenter = HomePresenter(Injection.providePreferenceRepository(applicationContext)
+                    ,it, this@MainActivity)
         }
     }
 
@@ -89,12 +109,15 @@ class MainActivity : AppCompatActivity(), HomePresenter.HomeCallBack, LoginPrese
     }
 
     private fun handleExceptionOnRestApi(error: RestApiException) {
-        error.callBack = object : RestApiException.CallBackError {
-            override fun connectException() {
-                detectInternetState()
+
+        error.onError(object : RestApiException.CallBackException {
+            override fun unAuthorized() {
+                directToLoginPage()
             }
-        }
-        error.onError(this)
+
+            override fun connectException() {
+            }
+        })
         when {
             !error.message.isNullOrEmpty() -> showToast(error.message!!)
             else -> false
@@ -110,5 +133,9 @@ class MainActivity : AppCompatActivity(), HomePresenter.HomeCallBack, LoginPrese
         if (requestCode == FacebookSdk.getCallbackRequestCodeOffset()){
             loginPresenter.resultLogin(requestCode, resultCode, data)
         }
+    }
+
+    override fun unAuthorized() {
+        directToLoginPage()
     }
 }

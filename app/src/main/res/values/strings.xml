@@ -13,8 +13,8 @@
     <string name="speech_not_supported">Sorry! Your device doesn\'t support speech input</string>
     <string name="dialog_warning">Warning</string>
     <string name="dialog_message_device_not_support_speed_to_text">Device not support. Please download Google app before using</string>
-    <string name="ok">ok</string>
-    <string name="cancel">cancel</string>
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
     <string name="string_title_no_internet">Warning</string>
     <string name="string_content_no_internet">Connect internet is fail. Please try again</string>
     <string name="string_exception_not_handle">Sorry! Exception not handle</string>
@@ -26,5 +26,8 @@
     <string name="fb_login_protocol_scheme">fb1969552466599731</string>
     <string name="title_activity_login_facebook">Login app</string>
     <string name="string_title_login_btn">Login with Facebook</string>
+    <string name="string_unauthorized">Please login again</string>
+    <string name="string_request_time_out">Request time out.</string>
+    <string name="btn_record_description">Click to speak</string>
 
 </resources>

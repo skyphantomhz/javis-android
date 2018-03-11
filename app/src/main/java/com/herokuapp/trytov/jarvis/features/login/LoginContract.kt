@@ -11,9 +11,8 @@ interface LoginContract{
         fun resultLogin(requestCode: Int, resultCode: Int, data: Intent?)
     }
     interface Presenter: BasePresenter{
-        fun loginByFacebook(result: LoginResult)
-        fun loginError(toString: String)
+        var listener: LoginPresenter.LoginCallBack
+        fun loginError(message: String)
         fun resultLogin(requestCode: Int, resultCode: Int, data: Intent?)
-
     }
 }
