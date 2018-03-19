@@ -29,5 +29,6 @@
     <string name="string_unauthorized">Please login again</string>
     <string name="string_request_time_out">Request time out.</string>
     <string name="btn_record_description">Click to speak</string>
+    <string name="string_account_incorrect">Account incorrect!</string>
 
 </resources>

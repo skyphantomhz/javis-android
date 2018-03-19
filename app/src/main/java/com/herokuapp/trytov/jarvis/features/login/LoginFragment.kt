@@ -48,6 +48,7 @@ class LoginFragment : Fragment(), LoginContract.View {
                     } else {
                         val user_id = me.optString("id")
                         val user_email = me.optString("email")
+                        Log.e(TAG,"User id: $user_id")
                         presenter.listener.loginSuccess(Profile( user_id.toLong(),user_email.toString()))
                     }
                 }
@@ -60,7 +61,6 @@ class LoginFragment : Fragment(), LoginContract.View {
             }
 
             override fun onError(error: FacebookException?) {
-                Log.e("TESTT","eror: ${error.toString()}")
                 presenter.loginError(error.toString())
             }
         })
@@ -76,5 +76,6 @@ class LoginFragment : Fragment(), LoginContract.View {
 
     companion object {
         fun newInstance() = LoginFragment()
+        val TAG = this::class.java.simpleName
     }
 }

@@ -1,6 +1,5 @@
 package com.herokuapp.trytov.jarvis.exception
 
-import android.content.Context
 import com.herokuapp.trytov.jarvis.BaseCallBack
 import com.herokuapp.trytov.jarvis.BaseException
 import com.herokuapp.trytov.jarvis.R
@@ -38,6 +37,9 @@ class RestApiException(override var error: Throwable) : BaseException {
             }
             HttpURLConnection.HTTP_INTERNAL_ERROR -> {
                 getStringResource(R.string.string_internal_server_error)
+            }
+            HttpURLConnection.HTTP_UNAVAILABLE ->{
+                getStringResource(R.string.string_account_incorrect)
             }
             else -> getStringResource(R.string.string_http_exception)
         }
