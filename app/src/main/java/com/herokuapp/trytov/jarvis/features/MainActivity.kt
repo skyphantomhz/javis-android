@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
 import com.facebook.FacebookSdk
+import com.facebook.login.LoginManager
 import com.herokuapp.trytov.jarvis.BaseException
 import com.herokuapp.trytov.jarvis.R
 import com.herokuapp.trytov.jarvis.SimpleSubscriber
@@ -112,6 +113,7 @@ class MainActivity : AppCompatActivity(), HomePresenter.HomeCallBack, LoginPrese
 
         error.onError(object : RestApiException.CallBackException {
             override fun unAuthorized() {
+                LoginManager.getInstance().logOut()
                 directToLoginPage()
             }
 
