@@ -10,7 +10,6 @@ import android.provider.Settings
 import android.speech.RecognizerIntent
 import android.support.annotation.RequiresApi
 import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -30,9 +29,8 @@ import android.view.inputmethod.InputMethodManager
 
 class HomeFragment : Fragment(), HomeContract.View {
     override lateinit var presenter: HomeContract.Presenter
-    lateinit var mContext: Context
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(com.herokuapp.trytov.jarvis.R.layout.fragment_home, container, false)
+        return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -50,45 +48,45 @@ class HomeFragment : Fragment(), HomeContract.View {
             override fun onEditorAction(v: TextView, actionId: Int, event: KeyEvent?): Boolean {
                 if (event?.keyCode === KeyEvent.KEYCODE_ENTER || actionId == EditorInfo.IME_ACTION_DONE) {
                     hideKeyBoard()
-                    tv_text_output?.text = ""
-                    presenter.sendResultAfterResolveVoice(tv_text_input.text.toString())
+                    processCommand(tv_text_input.text.toString())
                 }
                 return false
             }
         })
-        tv_text_input.setOnClickListener{detachChange = true}
+        tv_text_input.setOnClickListener { detachChange = true }
     }
 
-    private fun hideKeyBoard(){
+    private fun processStatus() {
+        progress_bar?.visibility = View.VISIBLE
+        tv_text_output?.text = ""
+        tv_text_output?.visibility = View.INVISIBLE
+    }
+
+    private fun resultStatus() {
+        progress_bar?.visibility = View.INVISIBLE
+        tv_text_output?.visibility = View.VISIBLE
+    }
+
+    private fun hideKeyBoard() {
         val inputManager = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputManager.hideSoftInputFromWindow(activity?.currentFocus?.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
     }
 
-    private fun dialogWarningDeviceNotSupport(){
-        val builder = AlertDialog.Builder(activity!!)
-        builder.setTitle(R.string.dialog_warning)
-        builder.setIcon(android.R.drawable.stat_sys_warning)
-        builder.setCancelable(false)
-        builder.setMessage(R.string.dialog_message_device_not_support_speed_to_text)
-                .setPositiveButton(R.string.ok, { _, _ ->
-                    presenter.directToGooglePlayDownloadAppSupport()
-                })
-                .setNegativeButton(R.string.cancel, { _, _ ->
-                    activity!!.finish()
-                })
-        builder.create().show()
+    private fun processCommand(command: String) {
+        processStatus()
+        presenter.sendResultAfterResolveVoice(command)
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    override fun gotoSetting(){
+    override fun gotoSetting() {
         startActivityForResult(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), 0)
     }
 
     override fun setTextInput(textInput: String) {
         tv_text_input.setText(textInput, TextView.BufferType.EDITABLE)
         tv_text_input.post({
-            if(!detachChange){
-                presenter.sendResultAfterResolveVoice(textInput)
+            if (!detachChange) {
+                processCommand(textInput)
             }
         })
     }
@@ -121,11 +119,11 @@ class HomeFragment : Fragment(), HomeContract.View {
     }
 
 
-    override fun directToGooglePlayFullLink(appPackageName: String){
+    override fun directToGooglePlayFullLink(appPackageName: String) {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)))
     }
 
-    override fun directToGooglePlayShortLink(appPackageName: String){
+    override fun directToGooglePlayShortLink(appPackageName: String) {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)))
     }
 
@@ -134,15 +132,16 @@ class HomeFragment : Fragment(), HomeContract.View {
      */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        presenter.resolveTextInput(requestCode,resultCode,data)
+        presenter.resolveTextInput(requestCode, resultCode, data)
     }
 
     override fun outputText(data: PackageResponse) {
+        resultStatus()
         tv_text_output.text = data.textResponse
         outputVoice(data)
     }
 
-    private fun outputVoice(data: PackageResponse){
+    private fun outputVoice(data: PackageResponse) {
         TextReader.getInstance().speak(data.textResponse)
     }
 

@@ -38,8 +38,6 @@ class HomePresenter(val sharePreferenceRepository: PreferenceRepository, val vie
 
     private fun getTextInput(data: String) {
         view.setTextInput(data)
-//        Thread.sleep(2000)
-//        getResultAfterResolve(data)
     }
 
     override fun deviceNotsupport() {
