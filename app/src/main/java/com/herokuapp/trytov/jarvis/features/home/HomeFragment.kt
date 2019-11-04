@@ -25,19 +25,23 @@ import com.herokuapp.trytov.jarvis.extensions.setHideKeyBoardListener
 import com.herokuapp.trytov.jarvis.util.TextReader
 import kotlinx.android.synthetic.main.fragment_home.*
 import java.util.*
+import android.view.inputmethod.InputMethodManager
 
 
 class HomeFragment : Fragment(), HomeContract.View {
     override lateinit var presenter: HomeContract.Presenter
     lateinit var mContext: Context
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_home, container, false)
+        return inflater.inflate(com.herokuapp.trytov.jarvis.R.layout.fragment_home, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initTextInputAction()
-        btn_speak.setOnClickListener { promptSpeechInput() }
+        btn_speak.setOnClickListener {
+            tv_text_output?.text = ""
+            promptSpeechInput()
+        }
         layout_backgroud.setHideKeyBoardListener()
     }
 
@@ -45,12 +49,19 @@ class HomeFragment : Fragment(), HomeContract.View {
         tv_text_input.setOnEditorActionListener(object : OnEditorActionListener {
             override fun onEditorAction(v: TextView, actionId: Int, event: KeyEvent?): Boolean {
                 if (event?.keyCode === KeyEvent.KEYCODE_ENTER || actionId == EditorInfo.IME_ACTION_DONE) {
+                    hideKeyBoard()
+                    tv_text_output?.text = ""
                     presenter.sendResultAfterResolveVoice(tv_text_input.text.toString())
                 }
                 return false
             }
         })
         tv_text_input.setOnClickListener{detachChange = true}
+    }
+
+    private fun hideKeyBoard(){
+        val inputManager = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputManager.hideSoftInputFromWindow(activity?.currentFocus?.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
     }
 
     private fun dialogWarningDeviceNotSupport(){
